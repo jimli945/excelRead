@@ -1,0 +1,252 @@
+import pandas as pd
+from pandas import DataFrame
+import numpy as np
+from excelClass import newCustExcel
+import utils
+##used this ##
+def custSheet():
+    sheet = pd.read_excel('example.xlsx', skiprows=1, sheet_name=None)
+
+    # xlsx = pd.ExcelFile("example.xlsx")
+    # print(xlsx.sheet_names)
+    tagLTE = sheet.get('LTE')
+
+    # print(tagLTE)
+    items = tagLTE["Items"][1:]
+    superUserDisplay = tagLTE["Superuser.1"][1:]
+    endUserDisplay = tagLTE["Enduser.1"][1:]
+    defaultValue = tagLTE["Default Values.1"][1:]
+
+    bundle = pd.concat([superUserDisplay, endUserDisplay, defaultValue], axis=1)
+    return bundle
+
+def defaultSheet():
+    sheet = pd.read_excel('example.xlsx', skiprows=1, sheet_name=None)
+
+    # xlsx = pd.ExcelFile("example.xlsx")
+    # print(xlsx.sheet_names)
+    tagLTE = sheet.get('LTE')
+    items = tagLTE["Items"][1:]
+    superUserDisplay = tagLTE["Superuser.1"][1:]
+    endUserDisplay = tagLTE["Enduser.1"][1:]
+    defaultValue = tagLTE["Default Values.1"][1:]
+
+    bundle = pd.concat([superUserDisplay, endUserDisplay, defaultValue], axis=1)
+    return bundle
+    pass
+
+
+def judgeCategory(index):
+    if (index < 29) and (index >= 1):
+        secondCate = "status"
+    elif (index < 40) and (index >= 29):
+        secondCate = "Cell Selection"
+    elif (index < 47) and (index >= 40):
+        secondCate = "Default PDN"
+    elif (index < 49) and (index >= 47):
+        secondCate = "Multi PDN Connection"
+    else:
+        secondCate = " PIN"
+    # print(secondCate)
+
+
+
+
+
+
+def createLookupArray(whichPD):
+    # Current index value = excel - 4
+    LTEMaxRow = 51
+    tmpStr = []
+    pre = 0
+    firstItem = whichPD[0] # Get the first item
+
+    for i in whichPD.index:
+        if i == 0: # Skip first item
+            pre = i
+            name = firstItem # First category name
+
+            continue
+
+        now = i # next round i
+        diff = now-pre # calculate how many items in pre category
+        tmpStr = tmpStr + [name]*diff # Create array with pre category
+        name = (whichPD.loc[i]) # Next category name
+        pre = i # Record current i
+
+    diff = LTEMaxRow - pre # The last one category
+    tmpStr = tmpStr + [name] * diff
+    tmpStr = pd.Series(tmpStr)
+    return tmpStr
+
+# custBundle = custSheet()
+# defaultBundle = defaultSheet()
+# print(custBundle)
+# print(defaultBundle)
+# print(defaultBundle['Default Values.1'])
+# print(custBundle['Default Values.1'])
+# df1 = pd.DataFrame()
+# print(defaultBundle["Default Values.1"])
+# print(custBundle["Default Values.1"])
+# df1['pricesMatch?'] = np.where(defaultBundle["Default Values.1"].notnull() == custBundle["Default Values.1"].notnull() , 'True', 'False')  #create new column in df1 to check if prices match
+
+# defaultBundle["Default Values.1"] = defaultBundle["Default Values.1"].fillna(-1)
+# custBundle["Default Values.1"] = custBundle["Default Values.1"].fillna(-1)
+#
+#
+# df1['pricesMatch?'] = np.where(defaultBundle["Default Values.1"] == custBundle["Default Values.1"],'True', 'False')  #create new column in df1 to check if prices match
+#
+# print(df1["pricesMatch?"])
+# print(custBundle)
+# print(df1[mask].index)
+# for i in df1[mask].index:
+#     print(i)
+#     print(custBundle.iloc[i])
+
+
+sheet = pd.read_excel('example.xlsx', skiprows=1, sheet_name=None)
+tagLTE = sheet.get('LTE')
+
+
+## tidy tag LTE and reset index
+tmp = tagLTE.drop([0]) # drop NaN row (the second row of Sub-Category(row3))
+tmp.reset_index(drop=True, inplace=True) # reset index
+tagLTE = tmp
+##
+
+# print(tagLTE)
+sub = tagLTE["Sub-Category"]
+mask = sub.notnull()
+
+
+# print(sub[mask]) # show the init index of each category
+
+subLookup = createLookupArray(sub[mask])
+# print(subLookup)
+
+thi = tagLTE["Third-Category"]
+mask = thi.notnull()
+thirdLookup = createLookupArray(thi[mask])
+# print(thirdLookup)
+
+fou = tagLTE["Fourth-Category"]
+# print(fou)
+mask = fou.notnull()
+
+# print(fou[mask])
+fouLookup = createLookupArray(fou[mask])
+fouLookup = fouLookup[:28] # to handle special case, 1. there is no so much tag to have category4, because category4 only have 28 item 
+# print(fouLookup)
+
+item = tagLTE["Items"]
+mask = item.notnull()
+# print(mask)
+itemLookup = createLookupArray(item[mask])
+# print(itemLookup)
+
+
+
+
+
+# print(subLookup.iloc[46], thirdLookup.iloc[46], itemLookup[46])
+# print(itemLookup)
+e = newCustExcel()
+# # e.printSheet()
+# # e.getDefaultValus()
+# # e.getCustValues()
+# lted = e.newGetDefaultSetting('LTE')
+# ltec = e.newGetCustSetting('LTE')
+# # print(d[['DsDisplay', 'DsDefaultValues']])
+# # print(mask)
+# # print(d[mask].index)
+# result = pd.DataFrame()
+# for columns in list(lted.columns):
+#     mask = lted[columns] == ltec[columns]
+#     result = pd.concat([result, mask], axis=1)
+#
+# for c in result.columns:
+#
+#     falseItem = utils.changedItem(result[c])
+#     print(falseItem)
+#
+#
+# # print(falseItem)
+# print(subLookup.iloc[48], thirdLookup.iloc[48], itemLookup[48])
+#
+# # print(result)
+#
+# print("Network")
+#
+#
+# netd = e.newGetDefaultSetting('Network')
+# netc = e.newGetCustSetting('Network')
+# result2 = pd.DataFrame()
+# for columns in list(netd.columns):
+#     mask = netd[columns] == netc[columns]
+#     result2 = pd.concat([result2, mask], axis=1)
+#
+# for c in result2.columns:
+#
+#     falseItem = utils.changedItem(result2[c])
+#     print(falseItem)
+#
+# print("IPv6")
+#
+# netd = e.newGetDefaultSetting('IPv6')
+# netc = e.newGetCustSetting('IPv6')
+# result2 = pd.DataFrame()
+# for columns in list(netd.columns):
+#     mask = netd[columns] == netc[columns]
+#     result2 = pd.concat([result2, mask], axis=1)
+#
+# for c in result2.columns:
+#
+#     falseItem = utils.changedItem(result2[c])
+#     print(falseItem)
+#
+# print("firewall")
+# netd = e.newGetDefaultSetting('Firewall')
+# netc = e.newGetCustSetting('Firewall')
+# result2 = pd.DataFrame()
+# for columns in list(netd.columns):
+#     mask = netd[columns] == netc[columns]
+#     result2 = pd.concat([result2, mask], axis=1)
+#
+# for c in result2.columns:
+#
+#     falseItem = utils.changedItem(result2[c])
+#     print(falseItem)
+#
+#
+# print("Management")
+# netd = e.newGetDefaultSetting('Management')
+# netc = e.newGetCustSetting('Management')
+# result2 = pd.DataFrame()
+#
+# for columns in list(netd.columns):
+#     mask = netd[columns] == netc[columns]
+#     result2 = pd.concat([result2, mask], axis=1)
+# for c in result2.columns:
+#
+#     falseItem = utils.changedItem(result2[c])
+#     print(c, ":", falseItem)
+#
+#
+# print("Monitoring")
+# netd = e.newGetDefaultSetting('Monitoring')
+# netc = e.newGetCustSetting('Monitoring')
+# result2 = pd.DataFrame()
+# # print(netd)
+# # print(netc)
+# for columns in list(netd.columns):
+#     mask = netd[columns] == netc[columns]
+#     result2 = pd.concat([result2, mask], axis=1)
+# for c in result2.columns:
+#
+#     falseItem = utils.changedItem(result2[c])
+#     print(c, ":", falseItem)
+#
+# # print(result2["eModi"])
+e.getDifferentItems('LTE')
+e.getDifferentItems('Monitoring')
+e.getDifferentItems('About')
