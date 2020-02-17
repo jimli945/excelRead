@@ -250,3 +250,6 @@ e = newCustExcel()
 e.getDifferentItems('LTE')
 e.getDifferentItems('Monitoring')
 e.getDifferentItems('About')
+
+
+print("practice git & github")
